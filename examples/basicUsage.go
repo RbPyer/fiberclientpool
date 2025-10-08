@@ -15,7 +15,7 @@ func main() {
 		DisableKeepAlive: false,
 	})
 
-	resp, err := p.R().
+	resp, err := p.Next().
 		Debug().
 		SetHeader("Authorization", "Bearer 123").
 		Get("https://reqbin.com/echo")

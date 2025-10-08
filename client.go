@@ -38,6 +38,11 @@ func NewClientPool(cfg Config) *ClientPool {
 	}
 }
 
-func (p *ClientPool) R() *client.Client {
+func (p *ClientPool) Next() *client.Client {
 	return p.pool[(p.curNumber.Add(1)-1)%uint64(len(p.pool))]
+}
+
+func (p *ClientPool) NextWithIdx() (*client.Client, int) {
+	num := (p.curNumber.Add(1) - 1) % uint64(len(p.pool))
+	return p.pool[num], int(num)
 }
