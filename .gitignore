@@ -1,0 +1,54 @@
+# --- Go build artifacts ---
+/bin/
+/build/
+/dist/
+/out/
+/tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.cover
+*.prof
+
+# --- Go module / vendor ---
+/vendor/
+/go.sum
+
+# --- Logs and runtime files ---
+*.log
+*.pid
+*.seed
+*.lock
+
+# --- IDE / Editor configs ---
+# GoLand / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# --- System files ---
+.DS_Store
+Thumbs.db
+
+# --- Caches ---
+/.cache/
+/__debug_bin
+/.vscode-test/
+*.swp
+*.swo
+
+# --- JetBrains temp files (GoLand run/test output) ---
+/home/*/.cache/JetBrains/
+/home/*/.cache/GoLand*/
+
+# --- Fiber client pool examples and tests ---
+/examples/tmp/
+/examples/*.bin
