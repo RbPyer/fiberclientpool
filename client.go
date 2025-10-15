@@ -1,16 +1,15 @@
 package fiberclientpool
 
 import (
-	"sync/atomic"
-
 	"github.com/gofiber/fiber/v3/client"
 	"github.com/outrigdev/goid"
+	"github.com/valyala/fasthttp"
 )
 
-type cachePadded struct {
-	cursor atomic.Uint64
-	_      [56]byte
-}
+//type cachePadded struct {
+//	cursor atomic.Uint64
+//	_      [56]byte
+//}
 
 type ClientPool struct {
 	pool         []*client.Client
@@ -20,7 +19,11 @@ type ClientPool struct {
 }
 
 func newClient(cfg Config) *client.Client {
-	return client.New().
+	return client.NewWithClient(&fasthttp.Client{
+		ReadTimeout:     cfg.Timeout,
+		WriteTimeout:    cfg.Timeout,
+		MaxConnsPerHost: int(cfg.MaxConnsPerHost),
+	}).
 		SetJSONMarshal(cfg.JSONMarshal).
 		SetJSONUnmarshal(cfg.JSONUnmarshal).
 		SetTimeout(cfg.Timeout).
