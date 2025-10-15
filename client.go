@@ -1,20 +1,23 @@
 package fiberclientpool
 
 import (
+	"runtime"
 	"sync/atomic"
-	"time"
 
 	"github.com/gofiber/fiber/v3/client"
+	"github.com/outrigdev/goid"
 )
 
-const (
-	defaultTimeout = 60 * time.Second
-	defaultSize    = 10
-)
+type cachePadded struct {
+	cursor atomic.Uint64
+	_      [56]byte
+}
 
 type ClientPool struct {
-	pool      []*client.Client
-	curNumber *atomic.Uint64
+	pool         []*client.Client
+	size         int
+	counters     []cachePadded
+	countersSize uint64
 }
 
 func newClient(cfg Config) *client.Client {
@@ -32,17 +35,23 @@ func NewClientPool(cfg Config) *ClientPool {
 		pool[i] = newClient(cfg)
 	}
 
-	return &ClientPool{
-		pool:      pool,
-		curNumber: new(atomic.Uint64),
+	ncpu := runtime.GOMAXPROCS(0)
+	clientPool := &ClientPool{
+		pool:     pool,
+		size:     cfg.Size,
+		counters: make([]cachePadded, ncpu),
 	}
+	clientPool.countersSize = uint64(len(clientPool.counters))
+	return clientPool
 }
 
 func (p *ClientPool) Next() *client.Client {
-	return p.pool[(p.curNumber.Add(1)-1)%uint64(len(p.pool))]
+	n := p.counters[goid.Get()%p.countersSize].cursor.Add(1)
+	return p.pool[(n-1)%uint64(p.size)]
 }
 
 func (p *ClientPool) NextWithIdx() (*client.Client, int) {
-	num := (p.curNumber.Add(1) - 1) % uint64(len(p.pool))
-	return p.pool[num], int(num)
+	n := p.counters[goid.Get()%p.countersSize].cursor.Add(1)
+	idx := (n - 1) % uint64(p.size)
+	return p.pool[idx], int(idx)
 }

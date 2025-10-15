@@ -3,14 +3,18 @@ package fiberclientpool
 import (
 	"encoding/json"
 	stglog "log"
+	"runtime"
 	"time"
 
 	"github.com/gofiber/fiber/v3/log"
 )
 
+const defaultTimeout = 60 * time.Second
+
 type Config struct {
 	Size             int
-	MaxConnsPerHost  int
+	CursorSize       int
+	MaxConnsPerHost  int64
 	JSONMarshal      func(v any) ([]byte, error)
 	JSONUnmarshal    func(data []byte, v any) error
 	Logger           log.CommonLogger
@@ -20,7 +24,10 @@ type Config struct {
 
 func (cfg *Config) validate() {
 	if cfg.Size < 1 {
-		cfg.Size = defaultSize
+		cfg.Size = runtime.GOMAXPROCS(0)
+	}
+	if cfg.CursorSize < 1 {
+		cfg.CursorSize = cfg.Size
 	}
 	if cfg.JSONMarshal == nil {
 		cfg.JSONMarshal = json.Marshal

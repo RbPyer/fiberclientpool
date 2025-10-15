@@ -17,7 +17,7 @@ func newTestPool(size int, timeout time.Duration) *ClientPool {
 	return NewClientPool(cfg)
 }
 
-func TestRoundRobinOrder(t *testing.T) {
+func TestClientPool_RoundRobinOrder(t *testing.T) {
 	t.Parallel()
 
 	size := 4
@@ -25,7 +25,7 @@ func TestRoundRobinOrder(t *testing.T) {
 
 	seen := make([]*fiberclient.Client, 0, size*2)
 	for i := 0; i < size*2; i++ {
-		seen = append(seen, p.R())
+		seen = append(seen, p.Next())
 	}
 
 	uniq := map[*fiberclient.Client]struct{}{}
@@ -43,7 +43,24 @@ func TestRoundRobinOrder(t *testing.T) {
 	}
 }
 
-func TestConcurrentAccessIsSafe(t *testing.T) {
+func TestClientPool_NextWithIdx(t *testing.T) {
+	t.Parallel()
+
+	size := 5
+	p := newTestPool(size, 2*time.Second)
+
+	for i := 0; i < size*3; i++ {
+		c, idx := p.NextWithIdx()
+		if c == nil {
+			t.Fatalf("got nil client at iteration %d", i)
+		}
+		if idx < 0 || idx >= size {
+			t.Fatalf("invalid idx=%d (out of range)", idx)
+		}
+	}
+}
+
+func TestClientPool_ConcurrentAccessIsSafe(t *testing.T) {
 	t.Parallel()
 
 	p := newTestPool(8, 3*time.Second)
@@ -59,7 +76,7 @@ func TestConcurrentAccessIsSafe(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			for i := 0; i < iters; i++ {
-				c := p.R()
+				c := p.Next()
 				if c == nil {
 					nilCount.Add(1)
 				}
@@ -69,6 +86,6 @@ func TestConcurrentAccessIsSafe(t *testing.T) {
 	wg.Wait()
 
 	if got := nilCount.Load(); got != 0 {
-		t.Fatalf("R() returned nil %d times", got)
+		t.Fatalf("Next() returned nil %d times", got)
 	}
 }
