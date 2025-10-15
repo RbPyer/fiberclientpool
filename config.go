@@ -13,7 +13,7 @@ const defaultTimeout = 60 * time.Second
 
 type Config struct {
 	Size             int
-	CursorSize       int
+	cursorSize       int
 	MaxConnsPerHost  int64
 	JSONMarshal      func(v any) ([]byte, error)
 	JSONUnmarshal    func(data []byte, v any) error
@@ -26,8 +26,8 @@ func (cfg *Config) validate() {
 	if cfg.Size < 1 {
 		cfg.Size = runtime.GOMAXPROCS(0)
 	}
-	if cfg.CursorSize < 1 {
-		cfg.CursorSize = cfg.Size
+	if cfg.cursorSize < 1 {
+		cfg.cursorSize = runtime.GOMAXPROCS(0)
 	}
 	if cfg.JSONMarshal == nil {
 		cfg.JSONMarshal = json.Marshal

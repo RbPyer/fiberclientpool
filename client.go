@@ -1,7 +1,6 @@
 package fiberclientpool
 
 import (
-	"runtime"
 	"sync/atomic"
 
 	"github.com/gofiber/fiber/v3/client"
@@ -35,13 +34,12 @@ func NewClientPool(cfg Config) *ClientPool {
 		pool[i] = newClient(cfg)
 	}
 
-	ncpu := runtime.GOMAXPROCS(0)
 	clientPool := &ClientPool{
-		pool:     pool,
-		size:     cfg.Size,
-		counters: make([]cachePadded, ncpu),
+		pool:         pool,
+		size:         cfg.Size,
+		counters:     make([]cachePadded, cfg.cursorSize),
+		countersSize: uint64(cfg.cursorSize),
 	}
-	clientPool.countersSize = uint64(len(clientPool.counters))
 	return clientPool
 }
 
